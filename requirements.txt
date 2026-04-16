@@ -1,0 +1,6 @@
+# No additional pip dependencies required.
+# This package uses only Python stdlib + PyTorch + Pillow,
+# all of which are already installed in ComfyUI environments.
+#
+# If you encounter import errors, ensure these are installed:
+#   pip install torch Pillow numpy
