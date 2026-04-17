@@ -71,9 +71,9 @@ def fetch_models_from_firestore():
             "from": [{"collectionId": "models"}],
             "where": {
                 "fieldFilter": {
-                    "field": {"fieldPath": "enabled"},
+                    "field": {"fieldPath": "status"},
                     "op": "EQUAL",
-                    "value": {"booleanValue": True}
+                    "value": {"stringValue": "active"}
                 }
             },
             "limit": 500
