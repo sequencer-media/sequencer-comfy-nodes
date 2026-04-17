@@ -1,7 +1,7 @@
 [project]
 name = "sequencer-comfy-nodes"
 description = "Universal Sequencer AI Nodes. Generate images, videos, and audio with over 50 models including Flux Pro, Veo 3.1, Ideogram, and Kling."
-version = "1.0.0"
+version = "1.0.1"
 readme = "README.md"
 authors = [
     { name = "Sequencer Media", email = "hello@sequencer.media" }
@@ -15,3 +15,4 @@ Repository = "https://github.com/sequencer-media/sequencer-comfy-nodes"
 [tool.comfy]
 PublisherId = "sequencer"
 NodeTypes = ["SequencerGenerate"]
+Icon = "https://raw.githubusercontent.com/sequencer-media/sequencer-comfy-nodes/main/icon.png"
