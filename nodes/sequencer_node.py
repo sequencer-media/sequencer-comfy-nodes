@@ -76,6 +76,11 @@ class SequencerGenerate:
                     "placeholder": "Describe what you want to generate...",
                     "tooltip": "Text prompt describing the desired output. Be descriptive for best results.",
                 }),
+                "api_key": ("STRING", {
+                    "default": "",
+                    "placeholder": "sk_...",
+                    "tooltip": "Paste your Sequencer API Key here, or leave blank to use ~/.sequencer/config.json",
+                }),
             },
             "optional": {
                 "aspect_ratio": (ASPECT_RATIOS, {
@@ -124,11 +129,6 @@ class SequencerGenerate:
                 "reference_image_3": ("IMAGE", {
                     "tooltip": "Reference image 3 — for additional subject/style references.",
                 }),
-                "api_key_override": ("STRING", {
-                    "default": "",
-                    "placeholder": "sk_...",
-                    "tooltip": "Override the API key from ~/.sequencer/config.json. Leave empty to use config file.",
-                }),
                 "workspace_id_override": ("STRING", {
                     "default": "",
                     "placeholder": "workspace-id",
@@ -164,14 +164,14 @@ class SequencerGenerate:
         reference_image_1=None,
         reference_image_2=None,
         reference_image_3=None,
-        api_key_override="",
+        api_key="",
         workspace_id_override="",
     ):
         """Execute the generation."""
 
         # ─── 1. Resolve API Key ───
-        api_key = api_key_override.strip() if api_key_override else get_api_key()
-        if not api_key:
+        api_key_resolved = api_key.strip() if api_key else get_api_key()
+        if not api_key_resolved:
             raise RuntimeError(
                 "No Sequencer API key configured.\n\n"
                 "Set up your API key:\n"
@@ -224,7 +224,7 @@ class SequencerGenerate:
         # ─── 5. Create Media Document ───
         media_type = category if category in ("image", "video", "audio") else "image"
         media_doc_id = create_media_doc(
-            api_key=api_key,
+            api_key=api_key_resolved,
             workspace_id=workspace_id,
             media_type=media_type,
             prompt=prompt,
@@ -251,7 +251,7 @@ class SequencerGenerate:
             input_audio_url=None,  # TODO: add audio input support
         )
 
-        response = start_generation(api_key, payload)
+        response = start_generation(api_key_resolved, payload)
         print(f"[Sequencer] Generation started: {response}")
 
         # ─── 7. Poll for Completion ───
@@ -260,7 +260,7 @@ class SequencerGenerate:
             print(f"[Sequencer] Status: {status} ({pct}%)")
 
         result = poll_media_status(
-            api_key=api_key,
+            api_key=api_key_resolved,
             workspace_id=workspace_id,
             media_doc_id=media_doc_id,
             callback=progress_callback,
@@ -345,5 +345,5 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "SequencerGenerate": "🎯 Sequencer Generate",
+    "SequencerGenerate": "🧬 Sequencer Generate",
 }

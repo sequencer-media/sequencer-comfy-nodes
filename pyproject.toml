@@ -1,7 +1,7 @@
 [project]
 name = "sequencer-comfy-nodes"
 description = "Universal Sequencer AI Nodes. Generate images, videos, and audio with over 50 models including Flux Pro, Veo 3.1, Ideogram, and Kling."
-version = "1.0.2"
+version = "1.0.3"
 readme = "README.md"
 authors = [
     { name = "Sequencer Media", email = "hello@sequencer.media" }
