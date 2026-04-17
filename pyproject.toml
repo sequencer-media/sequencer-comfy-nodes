@@ -13,5 +13,5 @@ dependencies = []
 Repository = "https://github.com/sequencer-media/sequencer-comfy-nodes"
 
 [tool.comfy]
-PublisherId = "sequencer-media"
+PublisherId = "sequencer"
 NodeTypes = ["SequencerGenerate"]
