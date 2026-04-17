@@ -78,8 +78,8 @@ class SequencerGenerate:
                 }),
                 "api_key": ("STRING", {
                     "default": "",
-                    "placeholder": "sk_...",
-                    "tooltip": "Paste your Sequencer API Key here, or leave blank to use ~/.sequencer/config.json",
+                    "placeholder": "Get key at: sequencer.media/settings",
+                    "tooltip": "Get your API key from sequencer.media/settings",
                 }),
             },
             "optional": {
@@ -145,6 +145,7 @@ class SequencerGenerate:
 
     DESCRIPTION = (
         "Universal Sequencer AI node — access any model from the Sequencer collection. "
+        "Don't have an API key? Get one at: https://sequencer.media/settings\n\n"
         "Generates images, videos, audio, and more. Select a model, enter a prompt, "
         "and connect optional inputs as needed. Results are returned as ComfyUI tensors "
         "and/or download URLs."
