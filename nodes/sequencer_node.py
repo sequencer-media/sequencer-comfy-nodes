@@ -16,9 +16,8 @@ from .config import get_api_key, get_workspace_id
 from .model_registry import get_model_choices, get_model_id_from_choice, get_model_by_id, get_all_models
 from .api_client import (
     resolve_workspace_id,
-    create_media_doc,
-    start_generation,
-    poll_media_status,
+    initiate_generation,
+    poll_task_status,
     download_media,
 )
 from .utils import (
@@ -203,11 +202,8 @@ class SequencerGenerate:
             workspace_id = resolve_workspace_id(api_key)
         if not workspace_id:
             raise RuntimeError(
-                "No workspace ID configured.\n\n"
-                "Add your workspace ID to ~/.sequencer/config.json:\n"
-                '  {"api_key": "sk_...", "workspace_id": "your-workspace-id"}\n\n'
-                "Find your workspace ID in the Sequencer web app URL:\n"
-                "  sequencer.media/dashboard/images → workspace ID is in the URL"
+                "Could not find a default workspace for your account.\n"
+                "Please go to sequencer.media and ensure you are part of a workspace."
             )
 
         # ─── 4. Upload Input Images (if connected) ───
@@ -222,48 +218,48 @@ class SequencerGenerate:
                 if ref_url:
                     reference_image_urls.append(ref_url)
 
-        # ─── 5. Create Media Document ───
+        # ─── 5. Build Payload & Start Generation ───
         media_type = category if category in ("image", "video", "audio") else "image"
-        media_doc_id = create_media_doc(
-            api_key=api_key_resolved,
-            workspace_id=workspace_id,
-            media_type=media_type,
-            prompt=prompt,
-            model_id=model_id,
-            aspect_ratio=aspect_ratio,
-        )
-        print(f"[Sequencer] Created media doc: {media_doc_id}")
+        
+        payload = {
+            "type": media_type,
+            "model": model_id,
+            "prompt": prompt,
+            "workspaceId": workspace_id,
+            "aspectRatio": aspect_ratio,
+        }
+        
+        if category == "video" and duration is not None:
+            payload["duration"] = duration
+            
+        if negative_prompt and negative_prompt.strip():
+            payload["negativePrompt"] = negative_prompt.strip()
+            
+        if source_image_url:
+            payload["sourceImageUrl"] = source_image_url
+            
+        print(f"[Sequencer] Starting generation...")
+        try:
+            response = initiate_generation(api_key_resolved, payload)
+        except RuntimeError as e:
+            if "Insufficient funds" in str(e):
+                raise RuntimeError("Insufficient credits. Please top up at sequencer.media.")
+            raise
+            
+        task_id = response.get("taskId")
+        if not task_id:
+            raise RuntimeError(f"Invalid API response: {response}")
+            
+        print(f"[Sequencer] Generation started (Task ID: {task_id})")
 
-        # ─── 6. Build Payload & Start Generation ───
-        payload = build_v3_payload(
-            model_dict=model_dict,
-            prompt=prompt,
-            model_id=model_id,
-            workspace_id=workspace_id,
-            media_doc_id=media_doc_id,
-            aspect_ratio=aspect_ratio,
-            duration=duration if category == "video" else None,
-            seed=seed if seed > 0 else None,
-            negative_prompt=negative_prompt if negative_prompt.strip() else None,
-            strength=strength if input_image is not None and strength < 1.0 else None,
-            resolution=resolution if resolution != "auto" else None,
-            source_image_url=source_image_url,
-            reference_image_urls=reference_image_urls if reference_image_urls else None,
-            input_audio_url=None,  # TODO: add audio input support
-        )
-
-        response = start_generation(api_key_resolved, payload)
-        print(f"[Sequencer] Generation started: {response}")
-
-        # ─── 7. Poll for Completion ───
+        # ─── 6. Poll for Completion ───
         def progress_callback(status, progress):
             pct = int(progress * 100) if progress else 0
             print(f"[Sequencer] Status: {status} ({pct}%)")
 
-        result = poll_media_status(
+        result = poll_task_status(
             api_key=api_key_resolved,
-            workspace_id=workspace_id,
-            media_doc_id=media_doc_id,
+            task_id=task_id,
             callback=progress_callback,
         )
         
